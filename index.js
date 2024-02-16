@@ -55,7 +55,7 @@ fastify.delete("/todos/:id", async (request, reply) => {
 const start = async () => {
   try {
     await fastify.listen({
-      port: 3000,
+      port: 4000,
       // You can add other options here if needed
     });
     fastify.log.info(`Server listening on ${fastify.server.address().port}`);
