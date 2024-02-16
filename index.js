@@ -1,68 +1,58 @@
-const fastify = require("fastify")({ logger: true });
+const express = require("express");
 const { v4: uuidv4 } = require("uuid");
-const fastifyCors = require("@fastify/cors");
+const cors = require("cors");
 
-fastify.register(fastifyCors, {
-  origin: true, // Change this according to your security requirements
-});
+const app = express();
+const PORT = 4000;
+
+app.use(express.json());
+app.use(cors());
 
 // In-memory data storage
 const todos = [];
 
 // Create a new todo.
-fastify.post("/todos", async (request, reply) => {
-  const { title, description } = request.body;
+app.post("/todos", (req, res) => {
+  const { title, description } = req.body;
   const id = uuidv4(); // Use uuidv4() to generate a unique ID
   const todo = { id, title, description };
   todos.push(todo);
-  reply.send(todo);
+  res.status(201).json(todo);
 });
 
 // Get a todo by ID
-fastify.get("/todos/:id", async (request, reply) => {
-  const id = request.params.id;
+app.get("/todos/:id", (req, res) => {
+  const id = req.params.id;
   const todo = todos.find((t) => t.id === id);
   if (!todo) {
-    reply.code(404).send({ error: "Todo not found" });
+    res.status(404).json({ error: "Todo not found" });
     return;
   }
-  reply.send(todo);
+  res.json(todo);
 });
 
 // Get all todos
-fastify.get("/todos", async (request, reply) => {
-  console.log("Todos: ", todos);
+app.get("/todos", (req, res) => {
   if (todos.length === 0) {
-    reply.code(404).send({ error: "No todo's availble" });
+    res.status(404).json({ error: "No todos available" });
     return;
   }
-  reply.send(todos);
+  res.json(todos);
 });
 
 // Delete a todo by ID
-fastify.delete("/todos/:id", async (request, reply) => {
-  const id = request.params.id;
+app.delete("/todos/:id", (req, res) => {
+  const id = req.params.id;
   const index = todos.findIndex((t) => t.id === id);
   if (index === -1) {
-    reply.code(404).send({ error: "Todo not found" });
+    res.status(404).json({ error: "Todo not found" });
     return;
   }
   const deletedTodo = todos.splice(index, 1)[0];
-  reply.send(deletedTodo);
+  res.json(deletedTodo);
 });
 
 // Start the server
-const start = async () => {
-  try {
-    await fastify.listen({
-      port: 4000,
-      // You can add other options here if needed
-    });
-    fastify.log.info(`Server listening on ${fastify.server.address().port}`);
-  } catch (err) {
-    fastify.log.error(err);
-    process.exit(1);
-  }
-};
-
-start();
+app.listen(PORT, () => {
+  console.log(`Server listening on http://localhost:${PORT}`);
+});
